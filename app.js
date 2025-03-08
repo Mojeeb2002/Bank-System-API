@@ -13,7 +13,7 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-app.use("/bank", authRouter);
+app.use("/bank/auth", authRouter);
 app.use("/bank/account", accountRouter);
 app.use("/bank/transactions", transactionRouter);
 
