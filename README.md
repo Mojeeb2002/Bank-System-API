@@ -23,7 +23,7 @@ The Bank System API is a RESTful API for managing bank accounts, including funct
 
    ```bash
    git clone https://git@github.com:Mojeeb2002/Bank-System-API.git
-   cd bank-system-api
+   cd Bank-System-API
    ```
 
 2. Install dependencies:

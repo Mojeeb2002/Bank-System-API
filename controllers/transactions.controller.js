@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Account from "../models/account.model.js";
 import User from "../models/user.model.js";
+import { convertCurrency } from "../utils/helper.js";
 
 export const deposit = async (req, res, next) => {
   try {
@@ -106,13 +107,13 @@ export const withdraw = async (req, res, next) => {
 
 export const transfer = async (req, res, next) => {
   try {
-    const { amount, accountNumber, recipientAccountNumber } = req.body;
+    const { amount, fromAccount, toAccount } = req.body;
 
     const senderAccount = await Account.findOne({
-      accountNumber: accountNumber,
+      accountNumber: fromAccount,
     }).populate("user", "name");
     const recipientAccount = await Account.findOne({
-      accountNumber: recipientAccountNumber,
+      accountNumber: toAccount,
     }).populate("user", "name");
 
     if (!senderAccount || !recipientAccount) {
@@ -176,6 +177,100 @@ export const transfer = async (req, res, next) => {
     };
 
     res.status(200).json(receipt);
+  } catch (error) {
+    console.log(`Error: ${error.message}`);
+    next(error);
+  }
+};
+
+export const exchange = async (req, res, next) => {
+  try {
+    // Ensure the request body is not empty and contains required fields
+    const { fromAccount, toAccount, amount } = req.body;
+
+    if (!fromAccount || !toAccount || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields (fromAccount, toAccount, amount)",
+      });
+    }
+
+    // Ensure the amount is a number and greater than 0
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid amount specified",
+      });
+    }
+
+    // Validate currencies (assuming you're handling this outside the body)
+    const { fromCurrency, toCurrency } = req.body;
+    if (
+      !["USD", "EUR", "GBP"].includes(fromCurrency) ||
+      !["USD", "EUR", "GBP"].includes(toCurrency)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid currency code!",
+      });
+    }
+
+    // Find the account by currency
+    const accountFrom = await Account.findOne({
+      accountNumber: fromAccount, // Use account number for lookup
+      user: req.user._id,
+    });
+
+    const accountTo = await Account.findOne({
+      accountNumber: toAccount, // Use account number for lookup
+      user: req.user._id,
+    });
+
+    if (!accountFrom || !accountTo) {
+      return res.status(404).json({
+        success: false,
+        message: "Account not found!",
+      });
+    }
+
+    // Convert currency
+    const convertedAmount = await convertCurrency(
+      fromCurrency,
+      toCurrency,
+      amount
+    );
+
+    if (!convertedAmount) {
+      return res.status(500).json({
+        success: false,
+        message: "Currency conversion failed!",
+      });
+    }
+
+    // Check if the account has sufficient balance
+    if (accountFrom.balance < amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient balance!",
+      });
+    }
+
+    // Update the account balances
+    accountFrom.balance -= amount;
+    accountTo.balance += parseFloat(convertedAmount);
+
+    // Save the changes
+    await accountFrom.save();
+    await accountTo.save();
+
+    const result = {
+      From: fromCurrency,
+      To: toCurrency,
+      Amount: amount,
+      ConvertedAmount: `${convertedAmount} ${toCurrency}`,
+    };
+
+    res.status(200).json(result);
   } catch (error) {
     console.log(`Error: ${error.message}`);
     next(error);

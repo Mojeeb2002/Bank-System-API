@@ -4,6 +4,7 @@ import connectToMongoDB from "./database/mongobd.js";
 import authRouter from "./routes/auth.routes.js";
 import accountRouter from "./routes/account.routes.js";
 import transactionRouter from "./routes/transactions.routes.js";
+import adminRouter from "./routes/admin.routes.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 app.use("/bank/auth", authRouter);
 app.use("/bank/account", accountRouter);
 app.use("/bank/transactions", transactionRouter);
+app.use("/bank/admin", adminRouter);
 
 const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
