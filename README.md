@@ -1,6 +1,6 @@
 # Bank System API
 
-The Bank System API is a RESTful API for managing bank accounts, including functionalities for creating accounts, depositing, withdrawing, and transferring funds between accounts.
+The Bank System API is a RESTful API for managing bank accounts, including functionalities for creating accounts, depositing, withdrawing, transferring funds between accounts, and exchanging currencies.
 
 ## Features
 
@@ -8,6 +8,7 @@ The Bank System API is a RESTful API for managing bank accounts, including funct
 - Deposit funds into an account
 - Withdraw funds from an account
 - Transfer funds between accounts
+- Exchange currencies between accounts
 - Retrieve account details for the logged-in user
 
 ## Technologies Used
@@ -87,9 +88,15 @@ The Bank System API is a RESTful API for managing bank accounts, including funct
   - Response: `{ "accountNumber": "123456789", "balance": 900, "currency": "USD" }`
 
 - **Transfer**
+
   - `POST /bank/transactions/transfer`
-  - Request body: `{ "amount": 100, "accountNumber": "123456789", "recipientAccountNumber": "987654321" }`
+  - Request body: `{ "amount": 100, "fromAccount": "123456789", "toAccount": "987654321" }`
   - Response: `{ "From": { "Name": "Sender Name", "AccountNumber": "123456789", "Amount": 100 }, "To": { "Name": "Recipient Name", "AccountNumber": "987654321", "Amount": 100 }, "Currency": "USD" }`
+
+- **Exchange**
+  - `POST /bank/transactions/exchange`
+  - Request body: `{ "amount": 100, "fromAccount": "123456789", "toAccount": "987654321", "fromCurrency": "USD", "toCurrency": "EUR" }`
+  - Response: `{ "From": "USD", "To": "EUR", "Amount": 100, "ConvertedAmount": "85 EUR" }`
 
 ## License
 
